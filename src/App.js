@@ -1,30 +1,67 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Button, FormControl, InputLabel, Input } from "@material-ui/core";
+
 import "./App.css";
+import Message from "./Message";
+import db from "./firebase";
+import firebase from "firebase";
 
 function App() {
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState([]);
-    console.log("input", input);
-    console.log("Messages", messages);
+    const [username, setUsername] = useState("");
+
+    useEffect(() => {
+        db.collection("messages")
+            .orderBy("timestamp", "desc")
+            .onSnapshot((snapshot) => {
+                setMessages(snapshot.docs.map((doc) => doc.data()));
+            });
+    }, []);
+
+    // userEffect - Code gets executed based on a condition in REACT
+    useEffect(() => {
+        setUsername(prompt("Please enter your name"));
+    }, []); //condition (if let blank code runs ONCE when the app component loads)
+
+    console.log("username", username);
 
     const sendMessage = (event) => {
-        // When send messages button is clicked input message is appended to the array of curret messages
-        setMessages([...messages, input]);
+        event.preventDefault();
+        db.collection("messages").add({
+            message: input,
+            username: username,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+
         setInput("");
     };
 
     return (
         <div className='App'>
             <h1>Facebook Messenger</h1>
+            <h2>Welcome {username}</h2>
+            <form>
+                <FormControl>
+                    <InputLabel>Enter a message...</InputLabel>
+                    <Input
+                        value={input}
+                        onChange={(event) => setInput(event.target.value)}
+                    />
+                    <Button
+                        disabled={!input}
+                        variant='contained'
+                        color='primary'
+                        type='submit'
+                        onClick={sendMessage}
+                    >
+                        Send Message
+                    </Button>
+                </FormControl>
+            </form>
 
-            <input
-                value={input}
-                onChange={(event) => setInput(event.target.value)}
-            />
-
-            <button onClick={sendMessage}>Send Message</button>
             {messages.map((message) => (
-                <p>{message}</p>
+                <Message username={username} message={message} />
             ))}
         </div>
     );
