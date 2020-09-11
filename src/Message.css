@@ -17,3 +17,8 @@
 .message-guestCard {
     background-color: rgb(203, 196, 196) !important;
 }
+
+.fb-messenger-icon {
+    width: 100px;
+    height: 100px;
+}
